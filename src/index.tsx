@@ -3,7 +3,7 @@ import './index.scss';
 import reportWebVitals from './reportWebVitals';
 import { firebaseConfig } from './constants/firebase.const';
 import { BrowserRouter } from 'react-router-dom';
-import { App } from './app';
+import { App } from './App';
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
