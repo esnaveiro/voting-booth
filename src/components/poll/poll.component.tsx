@@ -41,7 +41,7 @@ export const PollComponent = () => {
 	
 	useEffect(() => {
 		const pollRef = ref(db, DATABASE.COLLECTION);
-            console.log('lol: ', pollRef);
+            console.log('lol: ', pollRef, poll as any as IPoll);
             onValue(pollRef, (snapshot) => {
                 console.log('snap: ', snapshot.val());
 				setPoll(snapshot.val());
