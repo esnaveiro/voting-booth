@@ -1,10 +1,8 @@
 import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
 import { db } from '../../index';
-import { collection, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { DATABASE } from '../../constants/firebase.const';
-import { FirebaseService } from '../../services/firestore.service';
 import { ref, onValue } from 'firebase/database';
 
 // Persistent data array (typically fetched from the server)
