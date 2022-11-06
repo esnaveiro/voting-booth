@@ -10,7 +10,7 @@ import { getDatabase } from "firebase/database";
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
-export const db = getDatabase();
+export const db = getDatabase(app);
 
 const root = ReactDOM.createRoot(
 	document.getElementById('root') as HTMLElement
