@@ -1,7 +1,5 @@
 import { onValue, ref } from 'firebase/database';
 import { db } from "../index";
-import { DATABASE } from "../constants/firebase.const";
-
 
 export class FirebaseService {
     /**
@@ -9,9 +7,9 @@ export class FirebaseService {
      */
     public static getPoll() {
         try {
-            const pollRef = ref(db, DATABASE.COLLECTION);
-            console.log('lol: ', pollRef);
+            const pollRef = ref(db, 'poll/0/question');
             onValue(pollRef, (snapshot) => {
+                console.log('snaaaaaP. ', snapshot.val());
                 snapshot.val()
             });
         } catch (e) {

@@ -2,8 +2,8 @@
   Used to override weird poll behavior where words
   were being written vertically in each poll option
 **/
-[id^='mulAnswer'] {
+[id*='mulAnswer'] {
   ._is6ww {
-    width: 100%;
+    width: 100% !important;
   }
 }

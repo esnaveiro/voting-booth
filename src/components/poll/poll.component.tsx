@@ -3,7 +3,8 @@ import 'react-leaf-polls/dist/index.css';
 import { db } from '../../index';
 import { useEffect, useState } from 'react';
 import { DATABASE } from '../../constants/firebase.const';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, child, get } from 'firebase/database';
+import { FirebaseService } from '../../services/firebase.service';
 
 // Persistent data array (typically fetched from the server)
 const resData = [
@@ -17,7 +18,7 @@ const customTheme = {
 	textColor: 'black',
 	mainColor: '#00B87B',
 	backgroundColor: 'rgb(255,255,255)',
-	alignment: 'center'
+	alignment: 'center',
 }
 
 const vote = (item: Result, results: Result[]): void => {
@@ -37,17 +38,16 @@ interface IOption {
 }
 
 export const PollComponent = () => {
-	const [poll, setPoll] = useState({ question: '', options: []});
-	
+	const [poll, setPoll] = useState({ question: '', options: [] });
+
 	useEffect(() => {
 		const pollRef = ref(db, DATABASE.COLLECTION);
-            console.log('lol: ', pollRef, poll as any as IPoll);
-            onValue(pollRef, (snapshot) => {
-                console.log('snap: ', snapshot.val());
-				setPoll(snapshot.val());
-            });
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, { question: '', options: []} as any);
+		console.log('lol: ', pollRef, poll as any as IPoll);
+		// onValue(pollRef, (snapshot) => {
+		// 	console.log('snap: ', snapshot.val());
+		// 	setPoll({...poll, });
+		// });
+	}, [poll]);
 
 	return (
 		<LeafPoll
