@@ -29,6 +29,9 @@
     "eject": "react-scripts eject",
     "deploy": "yarn run build && firebase deploy"
   },
+  "engines": {
+    "node": "16.14.0"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
