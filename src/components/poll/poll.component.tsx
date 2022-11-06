@@ -1,10 +1,16 @@
 import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
-import { db } from '../../index';
-import { useEffect, useState } from 'react';
-import { DATABASE } from '../../constants/firebase.const';
-import { ref, onValue, child, get } from 'firebase/database';
-import { FirebaseService } from '../../services/firebase.service';
+
+// interface IPoll {
+// 	questions: string;
+// 	options: IOption[];
+// }
+
+// interface IOption {
+// 	id: number;
+// 	votes: number;
+// 	text: string;
+// }
 
 // Persistent data array (typically fetched from the server)
 const resData = [
@@ -26,28 +32,17 @@ const vote = (item: Result, results: Result[]): void => {
 	// and return the modified data to the server.
 }
 
-interface IPoll {
-	questions: string;
-	options: IOption[];
-}
-
-interface IOption {
-	id: number;
-	votes: number;
-	text: string;
-}
-
 export const PollComponent = () => {
-	const [poll, setPoll] = useState({ question: '', options: [] });
+	// const [poll, setPoll] = useState({ question: '', options: [] });
 
-	useEffect(() => {
-		const pollRef = ref(db, DATABASE.COLLECTION);
-		console.log('lol: ', pollRef, poll as any as IPoll);
-		// onValue(pollRef, (snapshot) => {
-		// 	console.log('snap: ', snapshot.val());
-		// 	setPoll({...poll, });
-		// });
-	}, [poll]);
+	// useEffect(() => {
+	// 	const pollRef = ref(db, DATABASE.COLLECTION);
+	// 	console.log('lol: ', pollRef, poll as any as IPoll);
+	// 	onValue(pollRef, (snapshot) => {
+	// 		console.log('snap: ', snapshot.val());
+	// 		setPoll({...poll, });
+	// 	});
+	// }, [poll]);
 
 	return (
 		<LeafPoll
