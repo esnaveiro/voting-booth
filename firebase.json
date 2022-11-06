@@ -9,11 +9,10 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "redirects": [
+    "rewrites": [
       {
-        "source": "/",
-        "destination": "/poll",
-        "type": 301
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   }
