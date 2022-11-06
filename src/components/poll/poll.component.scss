@@ -1,7 +1,9 @@
+/**
+  Used to override weird poll behavior where words
+  were being written vertically in each poll option
+**/
 [id^='mulAnswer'] {
-  div {
-    p {
-      width: 100vw;
-    }
+  ._is6ww {
+    width: 100%;
   }
 }

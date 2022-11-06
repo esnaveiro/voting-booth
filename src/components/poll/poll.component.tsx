@@ -1,5 +1,11 @@
 import { LeafPoll, Result } from 'react-leaf-polls'
-import 'react-leaf-polls/dist/index.css'
+import 'react-leaf-polls/dist/index.css';
+import { db } from '../../index';
+import { collection, getDocs } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { DATABASE } from '../../constants/firebase.const';
+import { FirebaseService } from '../../services/firestore.service';
+import { ref, onValue } from 'firebase/database';
 
 // Persistent data array (typically fetched from the server)
 const resData = [
@@ -21,7 +27,30 @@ const vote = (item: Result, results: Result[]): void => {
 	// and return the modified data to the server.
 }
 
+interface IPoll {
+	questions: string;
+	options: IOption[];
+}
+
+interface IOption {
+	id: number;
+	votes: number;
+	text: string;
+}
+
 export const PollComponent = () => {
+	const [poll, setPoll] = useState({ question: '', options: []});
+	
+	useEffect(() => {
+		const pollRef = ref(db, DATABASE.COLLECTION);
+            console.log('lol: ', pollRef);
+            onValue(pollRef, (snapshot) => {
+                console.log('snap: ', snapshot.val());
+				setPoll(snapshot.val());
+            });
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, { question: '', options: []} as any);
+
 	return (
 		<LeafPoll
 			type='multiple'

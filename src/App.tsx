@@ -4,9 +4,5 @@ import { routes } from './constants/routes.const';
 
 export const App: React.FC = () => {
     const routesObj = useRoutes(routes);
-    return (
-        <>
-            {routesObj}
-        </>
-    )
+    return <>{routesObj}</>;
 }

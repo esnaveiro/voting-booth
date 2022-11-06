@@ -1,14 +1,16 @@
 import ReactDOM from 'react-dom/client';
 import './index.scss';
 import reportWebVitals from './reportWebVitals';
-import { initializeApp } from "firebase/app";
 import { firebaseConfig } from './constants/firebase.const';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './app';
-
+import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 
 // Initialize Firebase
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+// Initialize Cloud Firestore and get a reference to the service
+export const db = getDatabase(app);
 
 const root = ReactDOM.createRoot(
 	document.getElementById('root') as HTMLElement
