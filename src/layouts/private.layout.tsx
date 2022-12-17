@@ -1,25 +1,47 @@
 import React from 'react';
-import 'antd/dist/antd.min.css';
-import { BarChartOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, PageHeader } from 'antd';
-import { Link, Outlet } from 'react-router-dom';
+import { BarChartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Menu } from 'antd';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
-import logo from '../assets/images/esn-aveiro-logo.jpeg';
+import { getAuth, signOut } from "firebase/auth";
 
-const { Content, Footer, Sider } = Layout;
-const menuItems = [
-	{
-		key: PATHS.POLL,
-		icon: <BarChartOutlined />,
-		label: 'Poll',
-	}, {
-		key: PATHS.ADMIN,
-		icon: <UserOutlined />,
-		label: 'Admin Panel',
-	}
-];
+const { Header, Content, Footer, Sider } = Layout;
 
 export const PrivateLayout: React.FC = () => {
+
+	const navigate = useNavigate();
+
+	const onLogout = () => {
+		const auth = getAuth();
+		signOut(auth).then(() => {
+			// Sign-out successful.
+			console.log('// Sign-out successful.');
+			// Navigate to login page
+
+			navigate('/login');
+		}).catch((error) => {
+			// An error happened.
+			console.log('// An error happened. ', error);
+		});
+	}
+
+	const menuItems = [
+		{
+			key: PATHS.POLL,
+			icon: <BarChartOutlined />,
+			label: 'Poll',
+		}, {
+			key: PATHS.ADMIN,
+			icon: <UserOutlined />,
+			label: 'Admin Panel',
+		}, {
+			key: 'Logout',
+			callback: onLogout,
+			icon: <LogoutOutlined />,
+			label: 'Logout',
+		}
+	];
+
 	return (
 		<Layout className="public-layout" style={{ minHeight: '100vh' }}>
 			<Sider
@@ -31,19 +53,17 @@ export const PrivateLayout: React.FC = () => {
 			>
 				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[PATHS.POLL]}>
 					{menuItems.map((item) => (
-						<Menu.Item key={item.key} icon={item.icon}>
+						<Menu.Item key={item.key} icon={item.icon} onClick={item.callback ? item.callback : () => null}>
 							{item.label}
-							<Link to={item.key} />
+							{item.callback ? null : <Link to={item.key} />}
 						</Menu.Item>
 					))}
 				</Menu>
 			</Sider>
 			<Layout>
-				<PageHeader
-					title="ESN Aveiro's Voting Booth"
-					avatar={{ src: logo }}
-					style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}
-				/>
+				<Header style={{ backgroundColor: '0xffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+					<h1 style={{ textAlign: 'center', color: 'white', fontSize: '23px', width: '100%' }}>ESN Aveiro's Voting Booth</h1>
+				</Header>
 				<Content style={{ margin: '0 16px' }}>
 					<Outlet />
 				</Content>

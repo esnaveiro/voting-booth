@@ -6,11 +6,17 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import * as firebaseui from "firebaseui";
+import { getAuth } from 'firebase/auth';
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getDatabase(app);
+
+// Initialize the FirebaseUI Widget using Firebase.
+const auth = getAuth();
+export const ui = new firebaseui.auth.AuthUI(auth);
 
 const root = ReactDOM.createRoot(
 	document.getElementById('root') as HTMLElement

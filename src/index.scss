@@ -1,3 +1,5 @@
+@use './reset.scss';
+@use './base.scss';
 @use './layouts/public.layout.scss';
 @use './layouts/private.layout.scss';
 @use './components/poll/poll.component.scss';
