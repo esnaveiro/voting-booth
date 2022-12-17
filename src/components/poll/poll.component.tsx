@@ -1,23 +1,20 @@
+import { ref, onValue } from 'firebase/database';
+import { useState, useEffect } from 'react';
 import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
+import { db } from '../..';
+import { DATABASE } from '../../constants/firebase.const';
 
-// interface IPoll {
-// 	questions: string;
-// 	options: IOption[];
-// }
+interface IPoll {
+	question: string;
+	options: IOption[];
+}
 
-// interface IOption {
-// 	id: number;
-// 	votes: number;
-// 	text: string;
-// }
-
-// Persistent data array (typically fetched from the server)
-const resData = [
-	{ id: 0, text: 'At least 2', votes: 0 },
-	{ id: 1, text: 'Over 9000', votes: 0 },
-	{ id: 2, text: 'Yes', votes: 0 }
-]
+interface IOption {
+	id: number;
+	votes: number;
+	text: string;
+}
 
 // Object keys may vary on the poll type (see the 'Theme options' table below)
 const customTheme = {
@@ -33,22 +30,27 @@ const vote = (item: Result, results: Result[]): void => {
 }
 
 export const PollComponent = () => {
-	// const [poll, setPoll] = useState({ question: '', options: [] });
+	
+	const [question, setQuestion] = useState('');
+	const [options, setOptions] = useState<IOption[]>([]);
 
-	// useEffect(() => {
-	// 	const pollRef = ref(db, DATABASE.COLLECTION);
-	// 	console.log('lol: ', pollRef, poll as any as IPoll);
-	// 	onValue(pollRef, (snapshot) => {
-	// 		console.log('snap: ', snapshot.val());
-	// 		setPoll({...poll, });
-	// 	});
-	// }, [poll]);
+	useEffect(() => {
+		const pollRef = ref(db, DATABASE.COLLECTION);
+		// Triggers on database updates
+		onValue(pollRef, (snapshot) => {
+			const queriedData = snapshot.val()[0] as IPoll;
+			// Sets question
+			setQuestion(queriedData.question);
+			// Sets question options
+			setOptions(queriedData.options);
+		});
+	}, []);
 
 	return (
 		<LeafPoll
 			type='multiple'
-			question='How many girls did Miguel Barbosa vacuum cleaned?'
-			results={resData}
+			question={question}
+			results={options}
 			theme={customTheme}
 			onVote={vote}
 			isVoted={false}
