@@ -12,7 +12,7 @@ export const LoginPage = () => {
     const centerCss = { display: 'flex', justifyContent: 'center', verticalAlign: 'middle' };
     return (
         <div style={{ ...centerCss, flexDirection: 'column', height: '80vh' }}>
-            <h1 style={{ ...centerCss }}>ESN Aveiro's Voting Booth</h1>
+            <h1 style={{ ...centerCss }}>Voting Booth</h1>
             <div id="firebaseui-auth-container"></div>
         </div>
     );

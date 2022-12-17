@@ -4,6 +4,7 @@ import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
 import { db } from '../..';
 import { DATABASE } from '../../constants/firebase.const';
+import { Spin } from 'antd';
 
 interface IPoll {
 	question: string;
@@ -30,7 +31,8 @@ const vote = (item: Result, results: Result[]): void => {
 }
 
 export const PollComponent = () => {
-	
+
+	const [isLoading, setIsLoading] = useState(true);
 	const [question, setQuestion] = useState('');
 	const [options, setOptions] = useState<IOption[]>([]);
 
@@ -43,17 +45,28 @@ export const PollComponent = () => {
 			setQuestion(queriedData.question);
 			// Sets question options
 			setOptions(queriedData.options);
+			setIsLoading(false);
 		});
 	}, []);
 
 	return (
-		<LeafPoll
-			type='multiple'
-			question={question}
-			results={options}
-			theme={customTheme}
-			onVote={vote}
-			isVoted={false}
-		/>
+		<div className='poll-component'>
+			{
+				isLoading ? (
+					<div className="spinner-container">
+						<Spin size="large" />
+					</div>
+				) : (
+					<LeafPoll
+						type='multiple'
+						question={question}
+						results={options}
+						theme={customTheme}
+						onVote={vote}
+						isVoted={false}
+					/>
+				)
+			}
+		</div>
 	)
 }

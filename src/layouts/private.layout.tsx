@@ -4,6 +4,7 @@ import { Layout, Menu } from 'antd';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
 import { getAuth, signOut } from "firebase/auth";
+import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -61,13 +62,27 @@ export const PrivateLayout: React.FC = () => {
 				</Menu>
 			</Sider>
 			<Layout>
-				<Header style={{ backgroundColor: '0xffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-					<h1 style={{ textAlign: 'center', color: 'white', fontSize: '23px', width: '100%' }}>ESN Aveiro's Voting Booth</h1>
+				<Header style={{
+					backgroundColor: '0xffffff',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					overflow: 'hidden',
+					whiteSpace: 'nowrap'
+				}}>
+					<h1 style={{ textAlign: 'center', color: 'white', fontSize: '23px', width: '100%' }}>Voting Booth</h1>
 				</Header>
 				<Content style={{ margin: '0 16px' }}>
 					<Outlet />
 				</Content>
-				<Footer style={{ textAlign: 'center' }}>ESN Aveiro ©2022</Footer>
+				<Footer style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
+					<p>
+						<span>
+							<img src={esnLogo} alt="ESN Aveiro's logo" style={{ height: '13px', marginRight: '8px' }} />
+						</span>
+						ESN Aveiro ©2022
+					</p>
+				</Footer>
 			</Layout>
 		</Layout >
 	);
