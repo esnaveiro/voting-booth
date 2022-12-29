@@ -10,7 +10,7 @@ export const routes: RouteObject[] = [
     {
         children: [
             {
-                element: <LoginPage/>, path: PATHS.LOGIN,
+                element: <LoginPage />, path: PATHS.LOGIN,
             },
         ],
         element: <PublicLayout />,

@@ -1,5 +1,7 @@
+import { FormComponent } from "../components/form/form.component"
+
 export const AdminPage = () => {
     return (
-        <div>Admin page</div>
+        <FormComponent />
     )
 }

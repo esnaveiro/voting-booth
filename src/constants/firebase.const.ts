@@ -13,7 +13,8 @@ export const firebaseConfig = {
 };
 
 export const DATABASE = {
-    COLLECTION: 'poll',
+    COLLECTION: 'polls',
+    POLL: 'poll',
     OPTIONS: 'options',
     QUESTION: 'question',
 }

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Layout } from 'antd';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { PATHS } from '../constants/paths.const';
 
 export const PublicLayout: React.FC = () => {
 
@@ -10,9 +11,11 @@ export const PublicLayout: React.FC = () => {
 	useEffect(() => {
 		const auth = getAuth();
 		onAuthStateChanged(auth, (user) => {
-			if (!user) {
+			if (user?.uid) {
+				navigate(PATHS.POLL);
+			} else {
 				// User is signed out
-				navigate('/login');
+				navigate(PATHS.LOGIN);
 			}
 		});
 

@@ -1,4 +1,4 @@
-import { ref, onValue } from 'firebase/database';
+import { ref, limitToLast, query, onChildAdded } from 'firebase/database';
 import { useState, useEffect } from 'react';
 import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
@@ -9,6 +9,7 @@ import { Spin } from 'antd';
 interface IPoll {
 	question: string;
 	options: IOption[];
+	show: boolean;
 }
 
 interface IOption {
@@ -33,30 +34,40 @@ const vote = (item: Result, results: Result[]): void => {
 export const PollComponent = () => {
 
 	const [isLoading, setIsLoading] = useState(true);
+	const [hasPoll, setHasPoll] = useState(false);
 	const [question, setQuestion] = useState('');
 	const [options, setOptions] = useState<IOption[]>([]);
+	const [showPoll, setShowPoll] = useState(false);
 
 	useEffect(() => {
-		const pollRef = ref(db, DATABASE.COLLECTION);
+		const pollsRef = ref(db, DATABASE.COLLECTION);
+		const lastPollRef = query(pollsRef, limitToLast(1)).ref;
 		// Triggers on database updates
-		onValue(pollRef, (snapshot) => {
-			const queriedData = snapshot.val()[0] as IPoll;
+		onChildAdded(lastPollRef, (snapshot) => {
+			const queriedData = snapshot.val() as IPoll;
 			// Sets question
 			setQuestion(queriedData.question);
 			// Sets question options
 			setOptions(queriedData.options);
-			setIsLoading(false);
+			// Sets show poll (defined from DB)
+			setShowPoll(queriedData.show)
+			// Found a poll, so we can show it
+			setHasPoll(true);
 		});
+		// No poll found
+		setIsLoading(false);
 	}, []);
 
 	return (
 		<div className='poll-component'>
 			{
-				isLoading ? (
+				isLoading && !hasPoll ? (
 					<div className="spinner-container">
 						<Spin size="large" />
 					</div>
-				) : (
+				) : !hasPoll ? (
+					<p style={{ display: 'flex', justifyContent: 'center' }}>No poll submitted</p>
+				) : showPoll ? (
 					<LeafPoll
 						type='multiple'
 						question={question}
@@ -65,6 +76,10 @@ export const PollComponent = () => {
 						onVote={vote}
 						isVoted={false}
 					/>
+				) : (
+					<div>
+						<h2>Please wait for the poll to be submitted</h2>
+					</div>
 				)
 			}
 		</div>
