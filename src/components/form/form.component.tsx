@@ -31,7 +31,7 @@ export const FormComponent: React.FC = () => {
 				options: values.options.map((option, i) => ({ id: `${newPollKey}-${i}`, text: option, votes: 0 })),
 				// @TODO
 				// Should be controlled by the switch
-				show: true,
+				show: false,
 			}
 		}
 		update(ref(db), updates).then(() => {

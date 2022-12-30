@@ -1,10 +1,14 @@
-import { ref, limitToLast, query, onChildAdded } from 'firebase/database';
+import { ref, limitToLast, query, onChildAdded, onValue } from 'firebase/database';
 import { useState, useEffect } from 'react';
 import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
 import { db } from '../..';
 import { DATABASE } from '../../constants/firebase.const';
 import { Spin } from 'antd';
+
+interface IPools {
+	[key: string]: IPoll
+}
 
 interface IPoll {
 	question: string;
@@ -42,7 +46,28 @@ export const PollComponent = () => {
 	useEffect(() => {
 		const pollsRef = ref(db, DATABASE.COLLECTION);
 		const lastPollRef = query(pollsRef, limitToLast(1)).ref;
-		// Triggers on database updates
+
+		// When there's any kind of update on the existing database polls
+		onValue(lastPollRef, (snapshot) => {
+			const queriedData = snapshot.val() as IPools;
+			if (queriedData) {
+				// Gets last key from queried data object
+				const lastKey = Object.keys(queriedData).slice(-1)[0];
+				const { question, options, show } = queriedData[lastKey];
+
+				// Sets question
+				setQuestion(question);
+				// Sets question options
+				setOptions(options);
+				// Sets show poll (defined from DB)
+				setShowPoll(show)
+				// Found a poll, so we can show it
+				setHasPoll(true);
+			}
+			setIsLoading(false);
+		});
+
+		// When there's any kind of insertion into the database
 		onChildAdded(lastPollRef, (snapshot) => {
 			const queriedData = snapshot.val() as IPoll;
 			// Sets question
@@ -53,35 +78,47 @@ export const PollComponent = () => {
 			setShowPoll(queriedData.show)
 			// Found a poll, so we can show it
 			setHasPoll(true);
+			setIsLoading(false);
 		});
-		// No poll found
-		setIsLoading(false);
 	}, []);
 
+	const renderLoadingSpinner = () => {
+		return (
+			<div className="spinner-container">
+				<Spin size="large" />
+			</div>
+		);
+	}
+
+	const renderPoll = () => {
+		return (
+			<LeafPoll
+				type='multiple'
+				question={question || ''}
+				results={options || []}
+				theme={customTheme}
+				onVote={vote}
+				isVoted={false}
+			/>
+		);
+	}
+
+	const renderPollMessage = (txt: string) => <p style={{ display: 'flex', justifyContent: 'center' }}>{txt}</p>;
+
+	const renderMainContent = () => {
+		if (isLoading) {
+			return renderLoadingSpinner();
+		} else if (!isLoading && !hasPoll) {
+			return renderPollMessage('No poll submitted');
+		} else if (!isLoading && hasPoll && showPoll) {
+			return renderPoll();
+		} else if (!isLoading && hasPoll && !showPoll) {
+			return renderPollMessage('Please wait for the poll to be shown')
+		}
+	}
 	return (
 		<div className='poll-component'>
-			{
-				isLoading && !hasPoll ? (
-					<div className="spinner-container">
-						<Spin size="large" />
-					</div>
-				) : !hasPoll ? (
-					<p style={{ display: 'flex', justifyContent: 'center' }}>No poll submitted</p>
-				) : showPoll ? (
-					<LeafPoll
-						type='multiple'
-						question={question}
-						results={options}
-						theme={customTheme}
-						onVote={vote}
-						isVoted={false}
-					/>
-				) : (
-					<div>
-						<h2>Please wait for the poll to be submitted</h2>
-					</div>
-				)
-			}
+			{renderMainContent()}
 		</div>
 	)
 }
