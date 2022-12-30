@@ -26,7 +26,7 @@ export const FormComponent: React.FC = () => {
 		const newPollKey = push(child(ref(db), DATABASE.COLLECTION)).key;
 
 		const updates = {
-			[DATABASE.COLLECTION + DATABASE.POLL + newPollKey]: {
+			[DATABASE.COLLECTION + '/' + DATABASE.POLL + newPollKey]: {
 				question: values.question,
 				options: values.options.map((option, i) => ({ id: `${newPollKey}-${i}`, text: option, votes: 0 })),
 				// @TODO
