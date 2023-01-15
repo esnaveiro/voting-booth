@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, {  } from 'react';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, notification, Switch } from 'antd';
+import { Button, Form, Input, notification } from 'antd';
 import { NotificationType } from '../../interfaces/antd-interface';
 import { push, ref, update, child, getDatabase } from 'firebase/database';
 import { DATABASE } from '../../constants/firebase.const';
@@ -12,25 +12,21 @@ interface IValues {
 
 export const FormComponent: React.FC = () => {
 	const [form] = Form.useForm();
-	const [showResults, setShowResults] = useState(false);
 	const [api, contextHolder] = notification.useNotification();
 
+	// Set initial form key obtained from the last submitted form
+
 	const renderNotification = (type: NotificationType, message: string, description?: string) => {
-		api[type]({
-			message, description, placement: 'bottomRight'
-		});
+		api[type]({ message, description, placement: 'bottomRight' });
 	};
 
 	const onFinish = (values: IValues) => {
 		const db = getDatabase();
 		const newPollKey = push(child(ref(db), DATABASE.COLLECTION)).key;
-
 		const updates = {
 			[DATABASE.COLLECTION + '/' + DATABASE.POLL + newPollKey]: {
 				question: values.question,
-				options: values.options.map((option, i) => ({ id: `${newPollKey}-${i}`, text: option, votes: 0 })),
-				// @TODO
-				// Should be controlled by the switch
+				options: values.options.map((option, i) => ({ id: i, text: option, votes: 0 })),
 				show: false,
 			}
 		}
@@ -146,18 +142,6 @@ export const FormComponent: React.FC = () => {
 						</Button>
 					</Form.Item>
 				</Form>
-				<Switch
-					title="Show Results"
-					checked={showResults}
-					onChange={setShowResults}
-					checkedChildren="Showing Results"
-					unCheckedChildren="Hiding Results"
-					onClick={(show) => {
-						console.log('here: ', show);
-						// @TODO
-						// Send firebase trigger that updates last poll show
-					}}
-				/>
 			</div>
 		</>
 	);

@@ -1,10 +1,10 @@
-import { ref, limitToLast, query, onChildAdded, onValue } from 'firebase/database';
+import { ref, limitToLast, query, onChildAdded, onValue, update, getDatabase } from 'firebase/database';
 import { useState, useEffect } from 'react';
 import { LeafPoll, Result } from 'react-leaf-polls'
 import 'react-leaf-polls/dist/index.css';
 import { db } from '../..';
 import { DATABASE } from '../../constants/firebase.const';
-import { Spin } from 'antd';
+import { Spin, Switch } from 'antd';
 
 interface IPools {
 	[key: string]: IPoll
@@ -30,11 +30,6 @@ const customTheme = {
 	alignment: 'center',
 }
 
-const vote = (item: Result, results: Result[]): void => {
-	// Here you probably want to manage
-	// and return the modified data to the server.
-}
-
 export const PollComponent = () => {
 
 	const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +37,8 @@ export const PollComponent = () => {
 	const [question, setQuestion] = useState('');
 	const [options, setOptions] = useState<IOption[]>([]);
 	const [showPoll, setShowPoll] = useState(false);
+	const [isVoted, setIsVoted] = useState(false);
+	const [pollKey, setPollKey] = useState('');
 
 	useEffect(() => {
 		const pollsRef = ref(db, DATABASE.COLLECTION);
@@ -60,9 +57,11 @@ export const PollComponent = () => {
 				// Sets question options
 				setOptions(options);
 				// Sets show poll (defined from DB)
-				setShowPoll(show)
+				setShowPoll(show);
 				// Found a poll, so we can show it
 				setHasPoll(true);
+				// Set poll key
+				setPollKey(lastKey);
 			}
 			setIsLoading(false);
 		});
@@ -78,9 +77,30 @@ export const PollComponent = () => {
 			setShowPoll(queriedData.show)
 			// Found a poll, so we can show it
 			setHasPoll(true);
+			// Set poll key ??
+			// setPollKey(queriedData);
 			setIsLoading(false);
 		});
 	}, []);
+
+	const onSwitch = (show: boolean) => {
+		const db = getDatabase();
+		const updates = {
+			[DATABASE.COLLECTION + '/' + pollKey + '/show']: show,
+		}
+		update(ref(db), updates).then(() => {
+			setPollKey(pollKey);
+			setShowPoll(show);
+		}).catch((error: any) => {
+			console.error('Error switching: ', error);
+		});
+	}
+
+	const onVote = (item: Result, results: Result[]): void => {
+		// TODO - this is not working as intended
+		setIsVoted(true);
+		console.log('here: ', isVoted, item, results);
+	}
 
 	const renderLoadingSpinner = () => {
 		return (
@@ -97,8 +117,8 @@ export const PollComponent = () => {
 				question={question || ''}
 				results={options || []}
 				theme={customTheme}
-				onVote={vote}
-				isVoted={false}
+				onVote={onVote}
+				isVoted={isVoted}
 			/>
 		);
 	}
@@ -118,6 +138,15 @@ export const PollComponent = () => {
 	}
 	return (
 		<div className='poll-component'>
+			<Switch
+				style={{ marginTop: '20px' }}
+				title="Show Results"
+				checked={showPoll}
+				// onChange={setSwitchShowResults}
+				checkedChildren="Showing Results"
+				unCheckedChildren="Hiding Results"
+				onClick={(show) => onSwitch(show)}
+			/>
 			{renderMainContent()}
 		</div>
 	)
