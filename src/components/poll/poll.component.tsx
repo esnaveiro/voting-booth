@@ -41,7 +41,7 @@ export const PollComponent = () => {
 			const queriedData = snapshot.val() as IPools;
 			if (queriedData) {
 				// Gets last key from queried data object
-				const lastKey = Object.keys(queriedData).slice(-1)[0];
+				const lastKey = getLastKey(queriedData);
 				const { question, options, showPoll, showResults } = queriedData[lastKey];
 
 				// Sets question
