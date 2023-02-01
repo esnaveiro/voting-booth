@@ -1,11 +1,11 @@
-import { ref, limitToLast, query, onChildAdded, onValue, getDatabase, update, get, remove } from 'firebase/database';
+import { ref, limitToLast, query, onChildAdded, onValue, getDatabase, get } from 'firebase/database';
 import { useState, useEffect } from 'react';
 import { db } from '../..';
 import { DATABASE } from '../../constants/firebase.const';
 import { Button, Spin } from 'antd';
 import { MultiplePoll, Result } from '../multiple-poll/multiple-poll.component';
 import { userService } from '../../services/user.service';
-import { getLastKey, getUserVotedOption, optionHasId } from '../../helpers/poll.helper';
+import { addNewVote, convertOptionsFromDbToPoll, getLastKey, getUserVotedOption, removeOldVote } from '../../helpers/poll.helper';
 import { IPollOption, IOption, IPools, IPoll } from '../../interfaces/poll-interface';
 
 // Object keys may vary on the poll type (see the 'Theme options' table below)
@@ -28,9 +28,7 @@ export const PollComponent = () => {
 	const [isVotedId, setIsVotedId] = useState(0);
 	const [pollKey, setPollKey] = useState('');
 
-	const convertOptionsFromDbToPoll = (options: IOption[]) => {
-		return options.map((option) => ({ ...option, votes: Object.keys(option.votes || {}).length || 0 }));
-	}
+
 
 	useEffect(() => {
 		const pollsRef = ref(db, DATABASE.POLLS);
@@ -95,6 +93,7 @@ export const PollComponent = () => {
 
 	const onVote = async (item: Result, results: Result[]): Promise<void> => {
 		setIsVotedId(item.id);
+		setIsVoted(true);
 		const db = getDatabase();
 		// Check if user already voted for any of the possible options
 		const pollsRef = ref(db, DATABASE.POLLS);
@@ -107,22 +106,11 @@ export const PollComponent = () => {
 				const queriedData = snapshot.val() as IPools;
 				const lastKey = getLastKey(queriedData);
 				userVotedOption = getUserVotedOption(queriedData[lastKey]);
-
-				setIsVoted(true);
 				const userId = userService.getUser();
 
-				// Removes old vote
-				if (optionHasId(userVotedOption)) {
-					await remove(
-						ref(db, `${DATABASE.POLLS}/${pollKey}/options/${userVotedOption?.id}/votes/${userService.getUser()}`)
-					).catch((error) => console.error('Error removing old vote: ', error));
-				}
-
-				// Sets new vote
-				await update(
-					ref(db, `${DATABASE.POLLS}/${pollKey}/options/${item.id}/votes`),
-					{ [userId]: userId }
-				).catch((error) => console.error('Error adding new vote: ', error));
+				await removeOldVote(userVotedOption, pollKey);
+				await addNewVote(pollKey, item, userId);
+				
 			} else {
 				console.error('No options available');
 			}
@@ -154,14 +142,10 @@ export const PollComponent = () => {
 			<div>
 				{renderPollMessage('Please wait for the results to be shown')}
 				<div style={{ display: 'flex', justifyContent: 'center' }}>
-					<Button onClick={onChangeVote}>Change your vote</Button>
+					<Button onClick={() => setIsVoted(false)}>Change your vote</Button>
 				</div>
 			</div>
 		);
-	}
-
-	const onChangeVote = () => {
-		setIsVoted(false);
 	}
 
 	const renderPollMessage = (txt: string) => <p style={{ display: 'flex', justifyContent: 'center' }}>{txt}</p>;
