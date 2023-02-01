@@ -5,7 +5,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
-import { child, get, getDatabase, ref, update } from 'firebase/database';
+import { query, get, getDatabase, limitToLast, ref, update } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
 import { userService } from '../services/user.service';
 
@@ -34,24 +34,28 @@ export const PrivateLayout: React.FC = () => {
 		const db = getDatabase();
 
 		const unsubscribe = onAuthStateChanged(auth, (user) => {
-			get(child(ref(db), `users/user-${user?.uid}`)).then((snapshot) => {
+			get(query(ref(db, `${DATABASE.USERS}/user-${user?.uid}`))).then((snapshot) => {
+
+				// Keeps the is admin flag set
 				if (snapshot.exists()) {
-					console.log('exists: ', snapshot.val());
+					userService.setIsAdmin(snapshot.val().isAdmin);
+					// It inserts a new user when it doesn't exist in the database
 				} else {
-					// Insert into DB in case it doesn't exist
 					// Not sure what to do here, user might be empty
 					const { uid, displayName, email } = user || { uid: '', displayName: '', email: '' };
-					const updates = {
-						[`${DATABASE.USERS}/user-${uid}}`]: {
-							email, id: uid, name: displayName, isAdmin: false,
+					if (uid && displayName && email) {
+						const updates = {
+							[`${DATABASE.USERS}/user-${uid}`]: {
+								email, id: uid, name: displayName, isAdmin: false,
+							}
 						}
+						update(ref(db), updates)
+							.then(() => {
+								console.log('User submitted or updated in db');
+							}).catch((e) => {
+								console.error('Error submitting user to db: ', e);
+							});
 					}
-					update(ref(db), updates)
-						.then(() => {
-							console.log('User submitted or updated in db');
-						}).catch((e) => {
-							console.error('Error submitting user to db: ', e);
-						});
 				}
 
 			}).catch((e) => console.error('Failed to get user info: ', e));
@@ -66,15 +70,18 @@ export const PrivateLayout: React.FC = () => {
 			key: PATHS.POLL,
 			icon: <BarChartOutlined />,
 			label: 'Poll',
+			show: true,
 		}, {
 			key: PATHS.ADMIN,
 			icon: <UserOutlined />,
 			label: 'Admin Panel',
+			show: userService.isUserAdmin(),
 		}, {
 			key: 'Logout',
 			callback: onLogout,
 			icon: <LogoutOutlined />,
 			label: 'Logout',
+			show: true,
 		}
 	];
 
@@ -89,10 +96,12 @@ export const PrivateLayout: React.FC = () => {
 			>
 				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[location.pathname]}>
 					{menuItems.map((item) => (
-						<Menu.Item key={item.key} icon={item.icon} onClick={item.callback ? item.callback : () => null}>
-							{item.label}
-							{item.callback ? null : <Link to={item.key} />}
-						</Menu.Item>
+						item.show ? (
+							<Menu.Item key={item.key} icon={item.icon} onClick={item.callback ? item.callback : () => null}>
+								{item.label}
+								{item.callback ? null : <Link to={item.key} />}
+							</Menu.Item>
+						) : null
 					))}
 				</Menu>
 			</Sider>
