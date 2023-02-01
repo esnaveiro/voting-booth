@@ -91,7 +91,7 @@ export const FormComponent: React.FC = () => {
 						},
 					},
 				]}
-				initialValue={['', '']}
+				initialValue={['In Favour', 'Against', 'Abstain']}
 			>
 				{(fields, { add, remove }) => (
 					<>
