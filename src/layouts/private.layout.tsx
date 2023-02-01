@@ -5,7 +5,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
-import { query, get, getDatabase, limitToLast, ref, update } from 'firebase/database';
+import { query, get, getDatabase, ref, update } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
 import { userService } from '../services/user.service';
 
