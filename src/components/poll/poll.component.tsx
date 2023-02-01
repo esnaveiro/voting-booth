@@ -58,8 +58,10 @@ export const PollComponent = () => {
 				// Sets poll db key
 				setPollKey(lastKey);
 
-				if (getUserVotedOption(queriedData[lastKey])?.id) {
+				const voteId = getUserVotedOption(queriedData[lastKey])?.id;
+				if (voteId) {
 					setIsVoted(true);
+					setIsVotedId(voteId)
 				}
 			}
 			setIsLoading(false);
