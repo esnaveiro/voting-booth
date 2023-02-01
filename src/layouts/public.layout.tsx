@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Layout } from 'antd';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { PATHS } from '../constants/paths.const';
+import { userService } from '../services/user.service';
 
 export const PublicLayout: React.FC = () => {
 
@@ -10,8 +11,9 @@ export const PublicLayout: React.FC = () => {
 
 	useEffect(() => {
 		const auth = getAuth();
-		onAuthStateChanged(auth, (user) => {
+		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			if (user?.uid) {
+				userService.setUser(user.uid)
 				navigate(PATHS.POLL);
 			} else {
 				// User is signed out
@@ -19,6 +21,9 @@ export const PublicLayout: React.FC = () => {
 			}
 		});
 
+		// Unsubscribes to authentication state change listener
+		// This only runs when the component unmounts
+		return () => unsubscribe();
 	}, [navigate]);
 
 	return (

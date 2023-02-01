@@ -1,20 +1,39 @@
-import React, {  } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, notification } from 'antd';
+import { Button, Form, Input, notification, Switch } from 'antd';
 import { NotificationType } from '../../interfaces/antd-interface';
-import { push, ref, update, child, getDatabase } from 'firebase/database';
+import { push, ref, update, child, getDatabase, limitToLast, query, onValue } from 'firebase/database';
 import { DATABASE } from '../../constants/firebase.const';
-
-interface IValues {
-	options: string[];
-	question: string;
-}
+import { db } from '../..';
+import { IValues } from '../../interfaces/form-interface';
+import { IPools } from '../../interfaces/poll-interface';
 
 export const FormComponent: React.FC = () => {
 	const [form] = Form.useForm();
 	const [api, contextHolder] = notification.useNotification();
+	const [pollKey, setPollKey] = useState('');
+	const [showPoll, setShowPoll] = useState(false);
+	const [showResults, setShowResults] = useState(false);
 
 	// Set initial form key obtained from the last submitted form
+	useEffect(() => {
+		const pollsRef = ref(db, DATABASE.POLLS);
+		const lastPollRef = query(pollsRef, limitToLast(1)).ref;
+
+		const unsubscribe = onValue(lastPollRef, (snapshot) => {
+			const queriedData = snapshot.val() as IPools;
+			if (queriedData) {
+				// Gets last key from queried data object
+				const lastKey = Object.keys(queriedData).slice(-1)[0];
+
+				// Set poll key
+				setPollKey(lastKey);
+			}
+		})
+
+		// Unsubcribes to onValue listener
+		return () => unsubscribe();
+	})
 
 	const renderNotification = (type: NotificationType, message: string, description?: string) => {
 		api[type]({ message, description, placement: 'bottomRight' });
@@ -22,26 +41,39 @@ export const FormComponent: React.FC = () => {
 
 	const onFinish = (values: IValues) => {
 		const db = getDatabase();
-		const newPollKey = push(child(ref(db), DATABASE.COLLECTION)).key;
+		const newPollKey = push(child(ref(db), DATABASE.POLLS)).key || '';
 		const updates = {
-			[DATABASE.COLLECTION + '/' + DATABASE.POLL + newPollKey]: {
+			[DATABASE.POLLS + '/' + DATABASE.POLL + newPollKey]: {
 				question: values.question,
-				options: values.options.map((option, i) => ({ id: i, text: option, votes: 0 })),
-				show: false,
+				options: values.options.map((option, i) => ({ id: i, text: option })),
+				showPoll: false,
+				showResults: false,
 			}
 		}
 		update(ref(db), updates).then(() => {
 			form.resetFields();
-		}).catch((error: any) => {
+			setPollKey(newPollKey);
+			setShowPoll(false);
+			setShowResults(false);
+		}).catch((error) => {
 			console.error('Error adding item: ', error);
 		});
 
 		renderNotification('success', 'Poll submitted');
 	};
 
-	const onFinishFailed = (errorInfo: any) => {
-		renderNotification('error', 'Please fill in all of the fields');
-	};
+	const onFinishFailed = () => renderNotification('error', 'Please fill in all of the fields');
+
+	const onSwitch = (show: boolean, option: string) => {
+		const db = getDatabase();
+		const updates = {
+			[DATABASE.POLLS + '/' + pollKey + '/show' + option]: show,
+		}
+		update(ref(db), updates).catch((error: any) => {
+			console.error('Error switching: ', error);
+		});
+		option === 'Results' ? setShowResults(show) : setShowPoll(show);
+	}
 
 	const renderFormOptions = () => {
 		return (
@@ -142,6 +174,24 @@ export const FormComponent: React.FC = () => {
 						</Button>
 					</Form.Item>
 				</Form>
+				<Switch
+					style={{ marginTop: '20px', marginRight: '20px' }}
+					title="Show Poll"
+					checkedChildren="Showing Poll"
+					unCheckedChildren="Hiding Poll"
+					onClick={(show) => onSwitch(show, 'Poll')}
+					onChange={setShowPoll}
+					checked={showPoll}
+				/>
+				<Switch
+					style={{ marginTop: '20px' }}
+					title="Show Results"
+					checkedChildren="Showing Results"
+					unCheckedChildren="Hiding Results"
+					onClick={(show) => onSwitch(show, 'Results')}
+					onChange={setShowResults}
+					checked={showResults}
+				/>
 			</div>
 		</>
 	);

@@ -14,7 +14,7 @@ export const firebaseConfig = {
 
 export const DATABASE = {
     USERS: 'users',
-    COLLECTION: 'polls',
+    POLLS: 'polls',
     POLL: 'poll',
     OPTIONS: 'options',
     QUESTION: 'question',

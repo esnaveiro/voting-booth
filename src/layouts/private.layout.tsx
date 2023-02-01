@@ -7,6 +7,7 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
 import { child, get, getDatabase, ref, update } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
+import { userService } from '../services/user.service';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -21,6 +22,7 @@ export const PrivateLayout: React.FC = () => {
 			console.log('// Sign-out successful.');
 			// Navigate to login page
 			navigate('/login');
+			userService.clearUser();
 		}).catch((error) => {
 			// An error happened.
 			console.log('// An error happened. ', error);
@@ -31,14 +33,8 @@ export const PrivateLayout: React.FC = () => {
 		const auth = getAuth();
 		const db = getDatabase();
 
-		onAuthStateChanged(auth, (user) => {
-			console.log('antes: ', user);
+		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			get(child(ref(db), `users/user-${user?.uid}`)).then((snapshot) => {
-				
-
-				// const newPollKey = push(child(ref(db), DATABASE.USERS)).key;
-				console.log('heeeeere: ', user, snapshot);
-
 				if (snapshot.exists()) {
 					console.log('exists: ', snapshot.val());
 				} else {
@@ -58,24 +54,11 @@ export const PrivateLayout: React.FC = () => {
 						});
 				}
 
-			})
+			}).catch((e) => console.error('Failed to get user info: ', e));
 		});
-		// Check if user was already logged in previously and set into DB
-		// .then((updates) => {
-		// 	update(ref(db), updates)
-		// 		.then((response) => {
-		// 			console.log('db: ', db, updates);
-		// 			console.log('User submitted to db', response);
-		// 			// debugger;
-		// 			navigate(PATHS.POLL);
-		// 		}).catch((e) => {
-		// 			console.error('Error submitting user to db');
-		// 			// debugger;
-		// 		});
-		// })
-		// 	.catch((e) => {
-		// 		console.log('ooooops: ', e)
-		// 	});
+
+		// This only runs when the component unmounts
+		return () => unsubscribe();
 	}, [navigate])
 
 	const menuItems = [

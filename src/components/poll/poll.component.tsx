@@ -1,26 +1,12 @@
-import { ref, limitToLast, query, onChildAdded, onValue, update, getDatabase } from 'firebase/database';
+import { ref, limitToLast, query, onChildAdded, onValue, getDatabase, update, get, remove } from 'firebase/database';
 import { useState, useEffect } from 'react';
-import { LeafPoll, Result } from 'react-leaf-polls'
-import 'react-leaf-polls/dist/index.css';
 import { db } from '../..';
 import { DATABASE } from '../../constants/firebase.const';
-import { Spin, Switch } from 'antd';
-
-interface IPools {
-	[key: string]: IPoll
-}
-
-interface IPoll {
-	question: string;
-	options: IOption[];
-	show: boolean;
-}
-
-interface IOption {
-	id: number;
-	votes: number;
-	text: string;
-}
+import { Button, Spin } from 'antd';
+import { MultiplePoll, Result } from '../multiple-poll/multiple-poll.component';
+import { userService } from '../../services/user.service';
+import { getLastKey, getUserVotedOption, optionHasId } from '../../helpers/poll.helper';
+import { IPollOption, IOption, IPools, IPoll } from '../../interfaces/poll-interface';
 
 // Object keys may vary on the poll type (see the 'Theme options' table below)
 const customTheme = {
@@ -35,71 +21,112 @@ export const PollComponent = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [hasPoll, setHasPoll] = useState(false);
 	const [question, setQuestion] = useState('');
-	const [options, setOptions] = useState<IOption[]>([]);
+	const [options, setOptions] = useState<IPollOption[]>([]);
 	const [showPoll, setShowPoll] = useState(false);
+	const [showResults, setShowResults] = useState(false);
 	const [isVoted, setIsVoted] = useState(false);
+	const [isVotedId, setIsVotedId] = useState(0);
 	const [pollKey, setPollKey] = useState('');
 
+	const convertOptionsFromDbToPoll = (options: IOption[]) => {
+		return options.map((option) => ({ ...option, votes: Object.keys(option.votes || {}).length || 0 }));
+	}
+
 	useEffect(() => {
-		const pollsRef = ref(db, DATABASE.COLLECTION);
+		const pollsRef = ref(db, DATABASE.POLLS);
 		const lastPollRef = query(pollsRef, limitToLast(1)).ref;
 
 		// When there's any kind of update on the existing database polls
-		onValue(lastPollRef, (snapshot) => {
+		const unsubscribeOnValue = onValue(lastPollRef, (snapshot) => {
 			const queriedData = snapshot.val() as IPools;
 			if (queriedData) {
 				// Gets last key from queried data object
 				const lastKey = Object.keys(queriedData).slice(-1)[0];
-				const { question, options, show } = queriedData[lastKey];
+				const { question, options, showPoll, showResults } = queriedData[lastKey];
 
 				// Sets question
 				setQuestion(question);
+				const cOptions = convertOptionsFromDbToPoll(options);
 				// Sets question options
-				setOptions(options);
+				setOptions(cOptions);
 				// Sets show poll (defined from DB)
-				setShowPoll(show);
+				setShowPoll(showPoll);
+				// Sets show poll results
+				setShowResults(showResults);
 				// Found a poll, so we can show it
 				setHasPoll(true);
-				// Set poll key
+				// Sets poll db key
 				setPollKey(lastKey);
+
+				if (getUserVotedOption(queriedData[lastKey])?.id) {
+					setIsVoted(true);
+				}
 			}
 			setIsLoading(false);
 		});
 
 		// When there's any kind of insertion into the database
-		onChildAdded(lastPollRef, (snapshot) => {
+		const unsubscribeOnChildAdded = onChildAdded(lastPollRef, (snapshot) => {
 			const queriedData = snapshot.val() as IPoll;
 			// Sets question
 			setQuestion(queriedData.question);
 			// Sets question options
-			setOptions(queriedData.options);
+			setOptions(convertOptionsFromDbToPoll(queriedData.options));
 			// Sets show poll (defined from DB)
-			setShowPoll(queriedData.show)
+			setShowPoll(queriedData.showPoll)
+			// Sets show poll results
+			setShowResults(queriedData.showResults);
 			// Found a poll, so we can show it
 			setHasPoll(true);
-			// Set poll key ??
-			// setPollKey(queriedData);
+			// Sets poll db key
+			// check if this is working @TODO
+			//setPollKey(pollKey);
 			setIsLoading(false);
 		});
+
+		// This only runs when the component unmounts
+		return () => {
+			unsubscribeOnValue();
+			unsubscribeOnChildAdded();
+		}
 	}, []);
 
-	const onSwitch = (show: boolean) => {
+	const onVote = async (item: Result, results: Result[]): Promise<void> => {
+		setIsVotedId(item.id);
 		const db = getDatabase();
-		const updates = {
-			[DATABASE.COLLECTION + '/' + pollKey + '/show']: show,
-		}
-		update(ref(db), updates).then(() => {
-			setPollKey(pollKey);
-			setShowPoll(show);
-		}).catch((error: any) => {
-			console.error('Error switching: ', error);
-		});
-	}
+		// Check if user already voted for any of the possible options
+		const pollsRef = ref(db, DATABASE.POLLS);
+		const lastPollRef = query(pollsRef, limitToLast(1)).ref;
+		let userVotedOption: IOption | undefined;
 
-	const onVote = (item: Result, results: Result[]): void => {
-		// TODO - this is not working as intended
-		setIsVoted(true);
-		console.log('here: ', isVoted, item, results);
+		try {
+			const snapshot = await get(lastPollRef);
+			if (snapshot.exists()) {
+				const queriedData = snapshot.val() as IPools;
+				const lastKey = getLastKey(queriedData);
+				userVotedOption = getUserVotedOption(queriedData[lastKey]);
+
+				setIsVoted(true);
+				const userId = userService.getUser();
+
+				// Removes old vote
+				if (optionHasId(userVotedOption)) {
+					await remove(
+						ref(db, `${DATABASE.POLLS}/${pollKey}/options/${userVotedOption?.id}/votes/${userService.getUser()}`)
+					).catch((error) => console.error('Error removing old vote: ', error));
+				}
+
+				// Sets new vote
+				await update(
+					ref(db, `${DATABASE.POLLS}/${pollKey}/options/${item.id}/votes`),
+					{ [userId]: userId }
+				).catch((error) => console.error('Error adding new vote: ', error));
+			} else {
+				console.error('No options available');
+			}
+		} catch (e) {
+			console.error('Error getting last poll reference: ', e);
+		}
 	}
 
 	const renderLoadingSpinner = () => {
@@ -111,16 +138,28 @@ export const PollComponent = () => {
 	}
 
 	const renderPoll = () => {
-		return (
-			<LeafPoll
-				type='multiple'
+		return !isVoted || (isVoted && showResults) ? (
+			<MultiplePoll
+				// type='multiple'
 				question={question || ''}
 				results={options || []}
 				theme={customTheme}
 				onVote={onVote}
 				isVoted={isVoted}
+				isVotedId={isVotedId}
 			/>
+		) : (
+			<div>
+				{renderPollMessage('Please wait for the results to be shown')}
+				<div style={{ display: 'flex', justifyContent: 'center' }}>
+					<Button onClick={onChangeVote}>Change your vote</Button>
+				</div>
+			</div>
 		);
+	}
+
+	const onChangeVote = () => {
+		setIsVoted(false);
 	}
 
 	const renderPollMessage = (txt: string) => <p style={{ display: 'flex', justifyContent: 'center' }}>{txt}</p>;
@@ -128,25 +167,17 @@ export const PollComponent = () => {
 	const renderMainContent = () => {
 		if (isLoading) {
 			return renderLoadingSpinner();
-		} else if (!isLoading && !hasPoll) {
+		} else if (!hasPoll) {
 			return renderPollMessage('No poll submitted');
-		} else if (!isLoading && hasPoll && showPoll) {
-			return renderPoll();
-		} else if (!isLoading && hasPoll && !showPoll) {
+		} else if (!showPoll) {
 			return renderPollMessage('Please wait for the poll to be shown')
+		} else if (showPoll) {
+			return renderPoll();
 		}
 	}
+
 	return (
 		<div className='poll-component'>
-			<Switch
-				style={{ marginTop: '20px' }}
-				title="Show Results"
-				checked={showPoll}
-				// onChange={setSwitchShowResults}
-				checkedChildren="Showing Results"
-				unCheckedChildren="Hiding Results"
-				onClick={(show) => onSwitch(show)}
-			/>
 			{renderMainContent()}
 		</div>
 	)
