@@ -78,6 +78,8 @@ export const PollComponent = () => {
 			setShowResults(queriedData.showResults);
 			// Found a poll, so we can show it
 			setHasPoll(true);
+			// Resets is voted status
+			setIsVoted(false);
 			// Sets poll db key
 			// check if this is working @TODO
 			//setPollKey(pollKey);
