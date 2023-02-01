@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BarChartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
@@ -14,6 +14,7 @@ const { Header, Content, Footer, Sider } = Layout;
 export const PrivateLayout: React.FC = () => {
 
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const onLogout = () => {
 		const auth = getAuth();
@@ -24,7 +25,6 @@ export const PrivateLayout: React.FC = () => {
 			navigate('/login');
 			userService.clearUser();
 		}).catch((error) => {
-			// An error happened.
 			console.log('// An error happened. ', error);
 		});
 	}
@@ -87,7 +87,7 @@ export const PrivateLayout: React.FC = () => {
 					console.log(broken);
 				}}
 			>
-				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[PATHS.POLL]}>
+				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[location.pathname]}>
 					{menuItems.map((item) => (
 						<Menu.Item key={item.key} icon={item.icon} onClick={item.callback ? item.callback : () => null}>
 							{item.label}

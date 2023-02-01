@@ -7,6 +7,7 @@ import { DATABASE } from '../../constants/firebase.const';
 import { db } from '../..';
 import { IValues } from '../../interfaces/form-interface';
 import { IPools } from '../../interfaces/poll-interface';
+import { getLastKey } from '../../helpers/poll.helper';
 
 export const FormComponent: React.FC = () => {
 	const [form] = Form.useForm();
@@ -24,10 +25,12 @@ export const FormComponent: React.FC = () => {
 			const queriedData = snapshot.val() as IPools;
 			if (queriedData) {
 				// Gets last key from queried data object
-				const lastKey = Object.keys(queriedData).slice(-1)[0];
-
+				const lastKey = getLastKey(queriedData);
+				const { showPoll, showResults } = queriedData[lastKey];
 				// Set poll key
 				setPollKey(lastKey);
+				setShowPoll(showPoll);
+				setShowResults(showResults);
 			}
 		})
 
