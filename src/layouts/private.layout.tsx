@@ -8,6 +8,7 @@ import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
 import { query, get, getDatabase, ref, update } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
 import { userService } from '../services/user.service';
+import useCollapse from '../hooks/custom.hooks';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -17,6 +18,7 @@ export const PrivateLayout: React.FC = () => {
 	const location = useLocation();
 
 	const [isAdmin, setIsAdmin] = useState(false);
+	const { reference, isCollapsed, setIsCollapsed } = useCollapse(true);
 
 	const onLogout = () => {
 		const auth = getAuth();
@@ -88,10 +90,14 @@ export const PrivateLayout: React.FC = () => {
 	];
 
 	return (
-		<Layout className="public-layout" style={{ minHeight: '100vh' }}>
+		<Layout className="public-layout" style={{ minHeight: '100vh' }} hasSider={true}>
 			<Sider
+				ref={reference}
 				breakpoint="lg"
 				collapsedWidth="0"
+				defaultCollapsed={true}
+				collapsed={isCollapsed}
+				onCollapse={(collapse) => setIsCollapsed(collapse)}
 			>
 				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[location.pathname]}>
 					{menuItems.map((item) => (
