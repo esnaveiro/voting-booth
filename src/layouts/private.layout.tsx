@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BarChartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -15,6 +15,8 @@ export const PrivateLayout: React.FC = () => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
+
+	const [isAdmin, setIsAdmin] = useState(false);
 
 	const onLogout = () => {
 		const auth = getAuth();
@@ -35,9 +37,9 @@ export const PrivateLayout: React.FC = () => {
 
 		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			get(query(ref(db, `${DATABASE.USERS}/user-${user?.uid}`))).then((snapshot) => {
-
 				// Keeps the is admin flag set
 				if (snapshot.exists()) {
+					setIsAdmin(snapshot.val().isAdmin);
 					userService.setIsAdmin(snapshot.val().isAdmin);
 					// It inserts a new user when it doesn't exist in the database
 				} else {
@@ -75,7 +77,7 @@ export const PrivateLayout: React.FC = () => {
 			key: PATHS.ADMIN,
 			icon: <UserOutlined />,
 			label: 'Admin Panel',
-			show: userService.isUserAdmin(),
+			show: isAdmin,
 		}, {
 			key: 'Logout',
 			callback: onLogout,
@@ -90,9 +92,6 @@ export const PrivateLayout: React.FC = () => {
 			<Sider
 				breakpoint="lg"
 				collapsedWidth="0"
-				onBreakpoint={broken => {
-					console.log(broken);
-				}}
 			>
 				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[location.pathname]}>
 					{menuItems.map((item) => (

@@ -2,12 +2,7 @@ export class UserService {
 
     private userId: string | undefined;
 
-    private isAdmin: boolean;
-
-    constructor() {
-        this.userId = '';
-        this.isAdmin = false;
-    }
+    private isAdmin: boolean | undefined;
 
     /**
      * Sets current user into localstorage
@@ -37,7 +32,7 @@ export class UserService {
      * Returns true when the current user is admin
      */
     public isUserAdmin(): boolean {
-        return this.isAdmin;
+        return !!this.isAdmin;
     }
 
     /**
