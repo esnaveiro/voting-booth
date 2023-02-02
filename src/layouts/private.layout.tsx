@@ -137,7 +137,7 @@ export const PrivateLayout: React.FC = () => {
 						<span>
 							<img src={esnLogo} alt="ESN Aveiro's logo" style={{ height: '13px', marginRight: '8px' }} />
 						</span>
-						ESN Aveiro ©2022
+						ESN Aveiro ©2023
 					</p>
 				</Footer>
 			</Layout>
