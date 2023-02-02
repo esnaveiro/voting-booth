@@ -1,10 +1,10 @@
 # Voting Booth
 
 In order to run this project follow the following steps:
-- Install Node 16
-- Open the command line and run `yarn` - it will install all the dependencies
-- Still in the command line, run `yarn start` - it will run the app in development mode;
-- All the commits pushed to master branch will be deployed directly to production. Check [Github Action](https://github.com/esnaveiro/voting-booth/actions) to see the status of the deployment
+- Install [Node 16](https://nodejs.org/en/blog/release/v16.16.0/) - you can also use [Node Version Manager](https://github.com/nvm-sh/nvm)
+- Open the command line in the project's root and run `yarn` - it will install all the dependencies of the project
+- Still in the command line in the project's root, run `yarn start` - it will run the app in development mode;
+- All the commits pushed to `master` branch will be deployed directly to production. Check [Github Action](https://github.com/esnaveiro/voting-booth/actions) to see the status of the deployment
 - Happy coding! :)
 
 ## Tech Stack
