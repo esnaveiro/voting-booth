@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BarChartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, notification } from 'antd';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
@@ -9,6 +9,7 @@ import { query, get, getDatabase, ref, update } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
 import { userService } from '../services/user.service';
 import useCollapse from '../hooks/custom.hooks';
+import { renderNotification } from '../helpers/antd.helpers';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -16,6 +17,7 @@ export const PrivateLayout: React.FC = () => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [api, contextHolder] = notification.useNotification();
 
 	const [isAdmin, setIsAdmin] = useState(false);
 	const { reference, isCollapsed, setIsCollapsed } = useCollapse(true);
@@ -23,13 +25,12 @@ export const PrivateLayout: React.FC = () => {
 	const onLogout = () => {
 		const auth = getAuth();
 		signOut(auth).then(() => {
-			// Sign-out successful.
-			console.log('// Sign-out successful.');
+			renderNotification(api, 'success', 'Sign-out successful')
 			// Navigate to login page
 			navigate('/login');
 			userService.clearUser();
 		}).catch((error) => {
-			console.log('// An error happened. ', error);
+			renderNotification(api, 'error', 'Error on sign-out');
 		});
 	}
 
@@ -57,17 +58,17 @@ export const PrivateLayout: React.FC = () => {
 							.then(() => {
 								console.log('User submitted or updated in db');
 							}).catch((e) => {
-								console.error('Error submitting user to db: ', e);
+								renderNotification(api, 'error', 'Error submitting user to db: ', e.message);
 							});
 					}
 				}
 
-			}).catch((e) => console.error('Failed to get user info: ', e));
+			}).catch((e) => renderNotification(api, 'error', e.message));
 		});
 
 		// This only runs when the component unmounts
 		return () => unsubscribe();
-	}, [navigate])
+	}, [api, navigate])
 
 	const menuItems = [
 		{
@@ -91,6 +92,7 @@ export const PrivateLayout: React.FC = () => {
 
 	return (
 		<Layout className="public-layout" style={{ minHeight: '100vh' }} hasSider={true}>
+			{contextHolder}
 			<Sider
 				ref={reference}
 				breakpoint="lg"

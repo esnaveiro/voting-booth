@@ -32,7 +32,5 @@ export function updateSwitchStatus(show: boolean, option: string, pollKey: strin
     const updates = {
         [DATABASE.POLLS + '/' + pollKey + '/show' + option]: show,
     }
-    update(ref(db), updates).catch((error: any) => {
-        console.error('Error switching: ', error);
-    });
+    update(ref(db), updates);
 }

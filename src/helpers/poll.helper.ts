@@ -51,7 +51,7 @@ export async function removeOldVote(userVotedOption: IOption | undefined, pollKe
     if (optionHasId(userVotedOption)) {
         await remove(
             ref(db, `${DATABASE.POLLS}/${pollKey}/options/${userVotedOption?.id}/votes/${userService.getUser()}`)
-        ).catch((error) => console.error('Error removing old vote: ', error));
+        );
     }
 }
 
@@ -65,5 +65,5 @@ export async function addNewVote(pollKey: string, item: Result, userId: string):
     await update(
         ref(db, `${DATABASE.POLLS}/${pollKey}/options/${item.id}/votes`),
         { [userId]: userId }
-    ).catch((error) => console.error('Error adding new vote: ', error));
+    );
 }

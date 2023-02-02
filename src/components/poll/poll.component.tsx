@@ -2,11 +2,12 @@ import { ref, limitToLast, query, onChildAdded, onValue, getDatabase, get } from
 import { useState, useEffect } from 'react';
 import { db } from '../..';
 import { DATABASE } from '../../constants/firebase.const';
-import { Button, Spin } from 'antd';
+import { Button, notification, Spin } from 'antd';
 import { MultiplePoll, Result } from '../multiple-poll/multiple-poll.component';
 import { userService } from '../../services/user.service';
 import { addNewVote, convertOptionsFromDbToPoll, getLastKey, getUserVotedOption, removeOldVote } from '../../helpers/poll.helper';
 import { IPollOption, IOption, IPools, IPoll } from '../../interfaces/poll-interface';
+import { renderNotification } from '../../helpers/antd.helpers';
 
 // Object keys may vary on the poll type (see the 'Theme options' table below)
 const customTheme = {
@@ -17,6 +18,7 @@ const customTheme = {
 }
 
 export const PollComponent = () => {
+	const [api, contextHolder] = notification.useNotification();
 
 	const [isLoading, setIsLoading] = useState(true);
 	const [hasPoll, setHasPoll] = useState(false);
@@ -114,10 +116,10 @@ export const PollComponent = () => {
 				await addNewVote(pollKey, item, userId);
 				
 			} else {
-				console.error('No options available');
+				renderNotification(api, 'error', 'No options available');
 			}
 		} catch (e) {
-			console.error('Error getting last poll reference: ', e);
+			renderNotification(api, 'error', 'Error getting last poll reference');
 		}
 	}
 
@@ -166,6 +168,7 @@ export const PollComponent = () => {
 
 	return (
 		<div className='poll-component'>
+			{contextHolder}
 			{renderMainContent()}
 		</div>
 	)

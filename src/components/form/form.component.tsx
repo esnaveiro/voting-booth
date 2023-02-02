@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, notification, Switch } from 'antd';
-import { NotificationType } from '../../interfaces/antd-interface';
 import { ref, limitToLast, query, onValue } from 'firebase/database';
 import { DATABASE } from '../../constants/firebase.const';
 import { db } from '../..';
@@ -9,6 +8,7 @@ import { IValues } from '../../interfaces/form-interface';
 import { IPools } from '../../interfaces/poll-interface';
 import { getLastKey } from '../../helpers/poll.helper';
 import { insertNewPoll, updateSwitchStatus } from '../../helpers/form.helper';
+import { renderNotification } from '../../helpers/antd.helpers';
 
 export const FormComponent: React.FC = () => {
 	const [form] = Form.useForm();
@@ -39,10 +39,6 @@ export const FormComponent: React.FC = () => {
 		return () => unsubscribe();
 	})
 
-	const renderNotification = (type: NotificationType, message: string, description?: string) => {
-		api[type]({ message, description, placement: 'bottomRight' });
-	};
-
 	/**
 	 * Function executed when the form is submitted
 	 * @param values
@@ -55,15 +51,15 @@ export const FormComponent: React.FC = () => {
 				setShowPoll(false);
 				setShowResults(false);
 			}).catch((error) => {
-				console.error('Error adding item: ', error);
+				renderNotification(api, 'error', 'Error adding item: ', error.message);
 			});
-		renderNotification('success', 'Poll submitted');
+		renderNotification(api, 'success', 'Poll submitted');
 	};
 
 	/**
 	 * Renders a notification error when form submission failed
 	 */
-	const onFinishFailed = () => renderNotification('error', 'Please fill in all of the fields');
+	const onFinishFailed = () => renderNotification(api, 'error', 'Please fill in all of the fields');
 
 	/**
 	 * Generic function that toggles switch button status
