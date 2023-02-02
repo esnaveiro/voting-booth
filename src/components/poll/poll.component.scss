@@ -3,7 +3,7 @@
   were being written vertically in each poll option
 **/
 [id*='mulAnswer'] {
-  ._is6ww {
+  [class*='multiple-poll_answerInner'] {
     width: 100% !important;
   }
 }
