@@ -1,6 +1,19 @@
-# Getting Started with Create React App
+# Voting Booth
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+In order to run this project follow the following steps:
+- Install Node 16
+- Open the command line and run `yarn` - it will install all the dependencies
+- Still in the command line, run `yarn start` - it will run the app in development mode;
+- All the commits pushed to master branch will be deployed directly to production. Check [Github Action](https://github.com/esnaveiro/voting-booth/actions) to see the status of the deployment
+- Happy coding! :)
+
+## Tech Stack
+
+This app was developed with:
+- [Create React App](https://github.com/facebook/create-react-app). 
+- [Firebase](https://firebase.google.com/), [Firebase Realtime Database](https://firebase.google.com/docs/database/web/start) and [FirebaseUI](https://github.com/firebase/firebaseui-web)
+- [Antd](https://ant.design/)
+- [Typescript](https://www.typescriptlang.org/)
 
 ## Available Scripts
 
