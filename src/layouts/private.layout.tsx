@@ -20,7 +20,8 @@ export const PrivateLayout: React.FC = () => {
 	const [api, contextHolder] = notification.useNotification();
 
 	const [isAdmin, setIsAdmin] = useState(false);
-	const { reference, isCollapsed, setIsCollapsed } = useCollapse(true);
+	const { reference, isCollapsed, setIsCollapsed } = useCollapse(false);
+	const [isMobile, setIsMobile] = useState(false);
 
 	const onLogout = () => {
 		const auth = getAuth();
@@ -104,15 +105,16 @@ export const PrivateLayout: React.FC = () => {
 				breakpoint="lg"
 				collapsedWidth="0"
 				defaultCollapsed={true}
-				collapsed={isCollapsed}
+				collapsed={isMobile ? isCollapsed : false}
 				onCollapse={(collapse) => setIsCollapsed(collapse)}
+				onBreakpoint={(broken) => setIsMobile(broken)}
 			>
 				<Menu theme="dark" mode="vertical" defaultSelectedKeys={[location.pathname]}>
 					{menuItems.map((item) => (
 						item.show ? (
 							<Menu.Item key={item.key} icon={item.icon} onClick={item.callback ? item.callback : () => null}>
 								{item.label}
-								{item.callback ? null : <Link to={item.key} onClick={() => setIsCollapsed(true)} />}
+								{item.callback ? null : <Link to={item.key} onClick={() => isMobile ? setIsCollapsed(true) : null} />}
 							</Menu.Item>
 						) : null
 					))}
