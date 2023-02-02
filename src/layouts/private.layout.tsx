@@ -104,7 +104,7 @@ export const PrivateLayout: React.FC = () => {
 						item.show ? (
 							<Menu.Item key={item.key} icon={item.icon} onClick={item.callback ? item.callback : () => null}>
 								{item.label}
-								{item.callback ? null : <Link to={item.key} />}
+								{item.callback ? null : <Link to={item.key} onClick={() => setIsCollapsed(true)} />}
 							</Menu.Item>
 						) : null
 					))}
