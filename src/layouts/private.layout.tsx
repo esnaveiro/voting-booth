@@ -27,7 +27,7 @@ export const PrivateLayout: React.FC = () => {
 		signOut(auth).then(() => {
 			renderNotification(api, 'success', 'Sign-out successful')
 			// Navigate to login page
-			navigate('/login');
+			navigate(PATHS.LOGIN);
 			userService.clearUser();
 		}).catch((error) => {
 			renderNotification(api, 'error', 'Error on sign-out');
@@ -63,7 +63,13 @@ export const PrivateLayout: React.FC = () => {
 					}
 				}
 
-			}).catch((e) => renderNotification(api, 'error', e.message));
+			}).catch((e) => {
+				renderNotification(api, 'error', e.message);
+				setTimeout(async () => {
+					await signOut(auth);
+					navigate(PATHS.LOGIN)
+				}, 5000);
+			});
 		});
 
 		// This only runs when the component unmounts

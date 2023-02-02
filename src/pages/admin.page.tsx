@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import { FormComponent } from "../components/form/form.component"
+import { PATHS } from "../constants/paths.const";
 import { userService } from "../services/user.service";
 
 export const AdminPage = () => {
@@ -8,7 +9,7 @@ export const AdminPage = () => {
 
     useEffect(() => {
         if (!userService.isUserAdmin()) {
-            navigate('/');
+            navigate(PATHS.ROOT);
         }
     });
 
