@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Form, Input, notification, Switch } from 'antd';
 import { NotificationType } from '../../interfaces/antd-interface';
-import { push, ref, update, child, getDatabase, limitToLast, query, onValue } from 'firebase/database';
+import { ref, limitToLast, query, onValue } from 'firebase/database';
 import { DATABASE } from '../../constants/firebase.const';
 import { db } from '../..';
 import { IValues } from '../../interfaces/form-interface';
 import { IPools } from '../../interfaces/poll-interface';
 import { getLastKey } from '../../helpers/poll.helper';
+import { insertNewPoll, updateSwitchStatus } from '../../helpers/form.helper';
 
 export const FormComponent: React.FC = () => {
 	const [form] = Form.useForm();
@@ -42,39 +43,35 @@ export const FormComponent: React.FC = () => {
 		api[type]({ message, description, placement: 'bottomRight' });
 	};
 
+	/**
+	 * Function executed when the form is submitted
+	 * @param values
+	 */
 	const onFinish = (values: IValues) => {
-		const db = getDatabase();
-		const newPollKey = push(child(ref(db), DATABASE.POLLS)).key || '';
-		const updates = {
-			[DATABASE.POLLS + '/' + DATABASE.POLL + newPollKey]: {
-				question: values.question,
-				options: values.options.map((option, i) => ({ id: i, text: option })),
-				showPoll: false,
-				showResults: false,
-			}
-		}
-		update(ref(db), updates).then(() => {
-			form.resetFields();
-			setPollKey(newPollKey);
-			setShowPoll(false);
-			setShowResults(false);
-		}).catch((error) => {
-			console.error('Error adding item: ', error);
-		});
-
+		insertNewPoll(values)
+			.then((newPollKey) => {
+				form.resetFields();
+				setPollKey(newPollKey);
+				setShowPoll(false);
+				setShowResults(false);
+			}).catch((error) => {
+				console.error('Error adding item: ', error);
+			});
 		renderNotification('success', 'Poll submitted');
 	};
 
+	/**
+	 * Renders a notification error when form submission failed
+	 */
 	const onFinishFailed = () => renderNotification('error', 'Please fill in all of the fields');
 
+	/**
+	 * Generic function that toggles switch button status
+	 * @param show
+	 * @param option
+	 */
 	const onSwitch = (show: boolean, option: string) => {
-		const db = getDatabase();
-		const updates = {
-			[DATABASE.POLLS + '/' + pollKey + '/show' + option]: show,
-		}
-		update(ref(db), updates).catch((error: any) => {
-			console.error('Error switching: ', error);
-		});
+		updateSwitchStatus(show, option, pollKey);
 		option === 'Results' ? setShowResults(show) : setShowPoll(show);
 	}
 
