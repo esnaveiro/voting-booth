@@ -51,23 +51,25 @@ function animateAnswers(
 			answers[index].style.backgroundColor = theme?.mainColor
 	}
 
+	const maxVotesCount = Math.max(...restOfAnswers.map((r) => r.votes));
+	const winners = restOfAnswers.filter((r) => r.votes === maxVotesCount);
+
 	// animate rest of answers (not clicked)
 	for (const ans of restOfAnswers) {
+		const isWinner = winners.find((w) => w.id === ans.id);
 		answers[ans.id].animate(
 			[
 				{ width: 0, easing: 'ease-out', backgroundColor: 'white' },
 				{
 					width: `${ans.percentage}%`,
 					easing: 'ease-out',
-					backgroundColor: `${ans.id === isVotedId ? theme?.mainColor : '#efefef'
-						}`
+					backgroundColor: `${isWinner ? theme?.mainColor : '#efefef'}`
 				}
 			],
 			500
 		)
 		answers[ans.id].style.width = `${ans.percentage}%`
-		answers[ans.id].style.backgroundColor = `${ans.id === isVotedId ? theme?.mainColor : '#efefef'
-			}`
+		answers[ans.id].style.backgroundColor = `${isWinner ? theme?.mainColor : '#efefef'}`
 	}
 }
 
