@@ -1,30 +1,5 @@
-import { List, Avatar, Space, Transfer, Table } from 'antd';
+import { List, Avatar, Space, Transfer } from 'antd';
 import React, { } from 'react';
-import { ColumnsType, TableRowSelection } from 'antd/es/table/interface';
-import { TransferItem, TransferProps } from 'antd/es/transfer';
-import difference from 'lodash/difference';
-
-interface RecordType {
-	key: string;
-	title: string;
-	description: string;
-	disabled: boolean;
-	tag: string;
-}
-
-interface DataType {
-	key: string;
-	title: string;
-	description: string;
-	disabled: boolean;
-	tag: string;
-}
-
-interface TableTransferProps extends TransferProps<TransferItem> {
-	dataSource: DataType[];
-	leftColumns: ColumnsType<DataType>;
-	rightColumns: ColumnsType<DataType>;
-}
 
 export const LobbyComponent: React.FC = () => {
 
@@ -62,39 +37,6 @@ export const LobbyComponent: React.FC = () => {
 		);
 	}
 
-	const renderVotingList = () => {
-		return (
-			<List
-				/**
-				 * From authenticated users list
-				 */
-				dataSource={[
-					{
-						id: 1,
-						name: 'Carolina Rodrigues',
-						email: "president@esnaveiro.org"
-					},
-					{
-						id: 2,
-						name: 'Francisco Lameira',
-						email: "grandes-fotos-no-sal@esnaveiro.org"
-					},
-				]}
-				bordered
-				renderItem={(item) => (
-					<List.Item key={item.id}>
-						<List.Item.Meta
-							avatar={
-								<Avatar src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" />
-							}
-							title={<a href="https://ant.design/index-cn">{item.name}</a>}
-							description={item.email}
-						/>
-					</List.Item>
-				)}
-			/>
-		);
-	}
 
 	// const TableTransfer = ({
 	// 	leftColumns,
