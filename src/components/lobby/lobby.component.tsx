@@ -10,6 +10,7 @@ interface IListItem {
 
 export const LobbyComponent: React.FC = () => {
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [listData, setListData] = useState<IListItem[]>([
 		{
 			name: 'Miguel Barbosa',
