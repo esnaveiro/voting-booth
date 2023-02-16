@@ -59,7 +59,7 @@ export const PollComponent = () => {
 				setPollKey(lastKey);
 
 				const voteId = getUserVotedOption(queriedData[lastKey])?.id;
-				if (voteId) {
+				if (voteId !== undefined && !isNaN(voteId)) {
 					setIsVoted(true);
 					setIsVotedId(voteId)
 				}
