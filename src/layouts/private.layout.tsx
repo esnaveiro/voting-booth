@@ -48,11 +48,11 @@ export const PrivateLayout: React.FC = () => {
 					// It inserts a new user when it doesn't exist in the database
 				} else {
 					// Not sure what to do here, user might be empty
-					const { uid, displayName, email } = user || { uid: '', displayName: '', email: '' };
+					const { uid, displayName, email, photoURL } = user || { uid: '', displayName: '', email: '', photoURL: '' };
 					if (uid && displayName && email) {
 						const updates = {
 							[`${DATABASE.USERS}/user-${uid}`]: {
-								email, id: uid, name: displayName, isAdmin: false,
+								email, id: uid, name: displayName, isAdmin: false, photoURL
 							}
 						}
 						update(ref(db), updates)
