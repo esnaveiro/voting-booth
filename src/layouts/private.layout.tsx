@@ -3,9 +3,9 @@ import { BarChartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icon
 import { Layout, Menu, notification } from 'antd';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
 import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
-import { query, get, getDatabase, ref, update } from 'firebase/database';
+import { query, get, getDatabase, ref, update, Database } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
 import { userService } from '../services/user.service';
 import useCollapse from '../hooks/custom.hooks';
@@ -39,28 +39,47 @@ export const PrivateLayout: React.FC = () => {
 		const auth = getAuth();
 		const db = getDatabase();
 
+		/**
+		 * Updates user info into the db
+		 * @param db
+		 * @param user
+		 * @param isAdmin
+		 */
+		const updateUserInfo = (db: Database, user: User | null, isAdmin = userService.isUserAdmin()) => {
+			const { uid, displayName, email, photoURL } = user || { uid: '', displayName: '', email: '', photoURL: '' };
+			const updates = {
+				[`${DATABASE.USERS}/user-${user?.uid}`]: {
+					email,
+					id: uid,
+					name: displayName,
+					isAdmin,
+					photoURL,
+					isOnVotingList: false,
+				}
+			}
+
+			return update(ref(db), updates)
+				.then(() => {
+					console.log('User submitted or updated in db');
+				}).catch((e) => {
+					renderNotification(api, 'error', 'Error updating user in db: ', e.message);
+				});
+		}
+
 		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			get(query(ref(db, `${DATABASE.USERS}/user-${user?.uid}`))).then((snapshot) => {
 				// Keeps the is admin flag set
 				if (snapshot.exists()) {
+
 					setIsAdmin(snapshot.val().isAdmin);
 					userService.setIsAdmin(snapshot.val().isAdmin);
+					updateUserInfo(db, user);
 					// It inserts a new user when it doesn't exist in the database
 				} else {
 					// Not sure what to do here, user might be empty
-					const { uid, displayName, email, photoURL } = user || { uid: '', displayName: '', email: '', photoURL: '' };
+					const { uid, displayName, email } = user || { uid: '', displayName: '', email: '' };
 					if (uid && displayName && email) {
-						const updates = {
-							[`${DATABASE.USERS}/user-${uid}`]: {
-								email, id: uid, name: displayName, isAdmin: false, photoURL
-							}
-						}
-						update(ref(db), updates)
-							.then(() => {
-								console.log('User submitted or updated in db');
-							}).catch((e) => {
-								renderNotification(api, 'error', 'Error submitting user to db: ', e.message);
-							});
+						updateUserInfo(db, user, false);
 					}
 				}
 
