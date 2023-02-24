@@ -1,34 +1,31 @@
 import { Space, Transfer } from 'antd';
 import { TransferDirection } from 'antd/es/transfer';
-import React, { useState } from 'react';
-
-interface IListItem {
-	key: string;
-	name: string;
-	email: string;
-}
+import { child, get, ref } from 'firebase/database';
+import React, { useEffect, useState } from 'react';
+import { db } from '../..';
+import { DATABASE } from '../../constants/firebase.const';
+import { getListOfUsers } from '../../helpers/lobby.helper';
+import { IUser } from '../../interfaces/lobby-interface';
 
 export const LobbyComponent: React.FC = () => {
 
+	useEffect(() => {
+		get(child(ref(db), DATABASE.USERS)).then((snapshot) => {
+			if (snapshot.exists()) {
+				const onlineUsers = getListOfUsers(snapshot.val() as Record<string, IUser>);
+				setListData(onlineUsers)
+			}
+		})
+	})
+
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [listData, setListData] = useState<IListItem[]>([
-		{
-			name: 'Miguel Barbosa',
-			email: "wpa@esnaveiro.org",
-			key: '1',
-		},
-		{
-			name: 'Joana Andrade',
-			email: "hr@esnaveiro.org",
-			key: '2',
-		},
-	]);
+	const [listData, setListData] = useState<IUser[]>([]);
 	const [targetKeys, setTargetKeys] = useState<string[]>([]);
 
-	const renderListItem = (item: IListItem) => {
+	const renderListItem = (item: IUser) => {
 		const transferItem = (
 			<div className="transfer-item" key={item.key}>
-				<img src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" alt="Avatar" />
+				<img src={item.photoURL} alt="Avatar" />
 				<div className="details">
 					<h4 className="title">{item.name}</h4>
 					<p className="description">{item.email}</p>
