@@ -1,31 +1,49 @@
-export class UserService {
+import { User } from "firebase/auth";
 
-    private userId: string | undefined;
+export class UserService {
 
     private isAdmin: boolean | undefined;
 
+    private loggedIn = false;
+
+    private user: User | undefined;
+
     /**
-     * Sets current user into localstorage
+     * Returns User object
+     */
+    public getUser(): User | undefined {
+        return this.user;
+    }
+
+    /**
+     * Sets user object that is obtained from DB
+     * @param user
+     */
+    public setUser(user: User) {
+        this.user = user;
+    }
+
+    /**
+     * Returns user from session storage
+     */
+    public getUserId(): string {
+        return sessionStorage.getItem('user-id') || '';
+    }
+
+    /**
+     * Sets current user into session storage
      * @param userId
      */
-    public setUser(userId: string): void {
-        this.userId = userId;
-        localStorage.setItem('user-id', userId)
+    public setUserId(userId: string): void {
+        sessionStorage.setItem('user-id', userId)
     }
 
     /**
-     * Returns user from localstorage
-     */
-    public getUser(): string {
-        return localStorage.getItem('user-id') || '';
-    }
-
-    /**
-     * Clears user from localstorage
+     * Clears user from session storage
      */
     public clearUser(): void {
-        this.userId = undefined;
-        localStorage.clear();
+        this.user = undefined;
+        sessionStorage.clear();
     }
 
     /**

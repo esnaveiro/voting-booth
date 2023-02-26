@@ -6,5 +6,8 @@ export interface IUser {
 	isLoggedIn: boolean;
 	isOnVotingList: boolean;
 	photoURL: string;
+}
+
+export interface IUserWKey extends IUser {
 	key: string;
 }

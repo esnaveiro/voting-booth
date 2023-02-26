@@ -32,7 +32,6 @@ function animateAnswers(
 		answerBuffer && answers.push(answerBuffer)
 	}
 
-	// debugger;
 	if (index !== undefined) {
 		// animate clicked answer
 		answers[index].animate(

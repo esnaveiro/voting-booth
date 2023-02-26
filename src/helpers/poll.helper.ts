@@ -21,7 +21,7 @@ export function getLastKey(data: Record<string, IPoll>): string {
 export function getUserVotedOption(data: IPoll): IOption | undefined {
     return data.options?.find((option) =>
         option.votes ?
-            Object.keys(option.votes).find((key) => option.votes[key] === userService.getUser()) :
+            Object.keys(option.votes).find((key) => option.votes[key] === userService.getUserId()) :
             false
     );
 }
@@ -50,7 +50,7 @@ export function convertOptionsFromDbToPoll(options: IOption[]) {
 export async function removeOldVote(userVotedOption: IOption | undefined, pollKey: string): Promise<void> {
     if (optionHasId(userVotedOption)) {
         await remove(
-            ref(db, `${DATABASE.POLLS}/${pollKey}/options/${userVotedOption?.id}/votes/${userService.getUser()}`)
+            ref(db, `${DATABASE.POLLS}/${pollKey}/options/${userVotedOption?.id}/votes/${userService.getUserId()}`)
         );
     }
 }

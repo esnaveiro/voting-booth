@@ -8,6 +8,7 @@ import { userService } from '../../services/user.service';
 import { addNewVote, convertOptionsFromDbToPoll, getLastKey, getUserVotedOption, removeOldVote } from '../../helpers/poll.helper';
 import { IPollOption, IOption, IPools, IPoll } from '../../interfaces/poll-interface';
 import { renderNotification } from '../../helpers/antd.helpers';
+import { IUser } from '../../interfaces/lobby-interface';
 
 // Object keys may vary on the poll type (see the 'Theme options' table below)
 const customTheme = {
@@ -28,6 +29,7 @@ export const PollComponent = () => {
 	const [showResults, setShowResults] = useState(false);
 	const [isVoted, setIsVoted] = useState(false);
 	const [isVotedId, setIsVotedId] = useState(0);
+	const [isOnVotingList, setIsOnVotingList] = useState(false);
 	const [pollKey, setPollKey] = useState('');
 
 
@@ -35,6 +37,18 @@ export const PollComponent = () => {
 	useEffect(() => {
 		const pollsRef = ref(db, DATABASE.POLLS);
 		const lastPollRef = query(pollsRef, limitToLast(1)).ref;
+
+		const usersRef = ref(db, `${DATABASE.USERS}/user-${userService.getUserId()}`);
+
+		/**
+		 * It subscribes to existing data at the current logged in user level
+		 */
+		const unsubscribeOnValueUser = onValue(query(usersRef), (snapshot) => {
+			if (snapshot.exists()) {
+				const user = snapshot.val() as IUser;
+				setIsOnVotingList(user.isOnVotingList);
+			}
+		})
 
 		// When there's any kind of update on the existing database polls
 		const unsubscribeOnValue = onValue(lastPollRef, (snapshot) => {
@@ -91,6 +105,7 @@ export const PollComponent = () => {
 		// This only runs when the component unmounts
 		return () => {
 			unsubscribeOnValue();
+			unsubscribeOnValueUser();
 			unsubscribeOnChildAdded();
 		}
 	}, []);
@@ -110,11 +125,10 @@ export const PollComponent = () => {
 				const queriedData = snapshot.val() as IPools;
 				const lastKey = getLastKey(queriedData);
 				userVotedOption = getUserVotedOption(queriedData[lastKey]);
-				const userId = userService.getUser();
+				const userId = userService.getUserId();
 
 				await removeOldVote(userVotedOption, pollKey);
 				await addNewVote(pollKey, item, userId);
-				
 			} else {
 				renderNotification(api, 'error', 'No options available');
 			}
@@ -157,6 +171,8 @@ export const PollComponent = () => {
 	const renderMainContent = () => {
 		if (isLoading) {
 			return renderLoadingSpinner();
+		} else if (!isOnVotingList) {
+			return renderPollMessage('You are on the voting waiting list')
 		} else if (!hasPoll) {
 			return renderPollMessage('No poll submitted');
 		} else if (!showPoll) {

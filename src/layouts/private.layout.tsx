@@ -3,15 +3,14 @@ import { BarChartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icon
 import { Layout, Menu, notification } from 'antd';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PATHS } from '../constants/paths.const';
-import { getAuth, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import esnLogo from '../assets/images/esn-aveiro-logo.jpeg';
 import { query, get, getDatabase, ref } from 'firebase/database';
 import { DATABASE } from '../constants/firebase.const';
 import { userService } from '../services/user.service';
 import useCollapse from '../hooks/custom.hooks';
-import { renderNotification } from '../helpers/antd.helpers';
-import { onLogout, updateUserInfo } from '../helpers/private-layout.helper';
-import { IEvent } from '../interfaces/base-interface';
+import { onLogout, getAndUpdateUserInfo, updateUserInfo } from '../helpers/private-layout.helper';
+import { IUser } from '../interfaces/lobby-interface';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -21,8 +20,6 @@ export const PrivateLayout: React.FC = () => {
 	const location = useLocation();
 	const [api, contextHolder] = notification.useNotification();
 
-	const [isAdmin, setIsAdmin] = useState(false);
-	const [userState, setUserState] = useState<User | null>(null);
 	const { reference, isCollapsed, setIsCollapsed } = useCollapse(false);
 	const [isMobile, setIsMobile] = useState(false);
 
@@ -31,49 +28,54 @@ export const PrivateLayout: React.FC = () => {
 		const db = getDatabase();
 
 		const unsubscribe = onAuthStateChanged(auth, (user) => {
-			setUserState(user);
-
-			get(query(ref(db, `${DATABASE.USERS}/user-${user?.uid}`))).then(async (snapshot) => {
-				// Keeps the is admin flag set
-				if (snapshot.exists()) {
-					setIsAdmin(snapshot.val().isAdmin);
-					userService.setIsAdmin(snapshot.val().isAdmin);
-					await updateUserInfo(api, db, user);
-					// It inserts a new user when it doesn't exist in the database
-				} else {
-					// Not sure what to do here, user might be empty
-					const { uid, displayName, email } = user || { uid: '', displayName: '', email: '' };
-					if (uid && displayName && email) {
-						updateUserInfo(api, db, user, true);
+			if (user?.uid) {
+				userService.setUser(user);
+				get(query(ref(db, `${DATABASE.USERS}/user-${user?.uid}`))).then(async (snapshot) => {
+					// Keeps the is admin flag set
+					if (snapshot.exists()) {
+						userService.setIsAdmin(snapshot.val().isAdmin);
+						await getAndUpdateUserInfo(api, user, true);
+						// It inserts a new user when it doesn't exist in the database
+					} else {
+						// Not sure what to do here, user might be empty
+						if (user?.uid && user?.displayName && user?.email && user?.uid && user?.photoURL) {
+							const { uid, displayName, email, photoURL } = user;
+							const userData = {
+								email,
+								id: uid,
+								name: displayName,
+								isAdmin: userService.isUserAdmin(),
+								photoURL,
+								isOnVotingList: false,
+							} as IUser;
+							await updateUserInfo(api, userData, user.uid, true);
+						}
 					}
-				}
 
-			}).catch((e) => {
-				renderNotification(api, 'error', e.message);
-				setTimeout(async () => {
-					await signOut(auth);
-					navigate(PATHS.LOGIN)
-				}, 5000);
-			});
+				}).catch(() => {
+					setTimeout(async () => onLogout(navigate, api), 5000);
+				});
+			}
 		});
 
 		/**
 		 * Updates user logged in info to logged off when the tab is closed
 		 * @param event
 		 */
-		const handleTabClose = async (event: IEvent) => {
+		const handleTabClose = async (event: { preventDefault: () => void; type: any; }) => {
+			// Prevents default behavior of immediately closing the tab and this way we can override its behavior
 			event.preventDefault();
-			return await onLogout(navigate, api, getDatabase(), userState);
+			return await onLogout(navigate, api);
 		};
 
-		window.addEventListener('beforeunload', handleTabClose);
+		window.addEventListener('unload', handleTabClose);
 
 		// This only runs when the component unmounts, it prevents memory leaks
 		return () => {
 			unsubscribe();
-			window.removeEventListener('beforeunload', handleTabClose);
+			window.removeEventListener('unload', handleTabClose);
 		};
-	}, [api, navigate, userState])
+	}, [api, navigate]);
 
 	const menuItems = [
 		{
@@ -85,10 +87,10 @@ export const PrivateLayout: React.FC = () => {
 			key: PATHS.ADMIN,
 			icon: <UserOutlined />,
 			label: 'Admin Panel',
-			show: isAdmin,
+			show: userService.isUserAdmin(),
 		}, {
 			key: 'Logout',
-			callback: onLogout.bind(this, navigate, api, getDatabase(), userState),
+			callback: onLogout.bind(this, navigate, api),
 			icon: <LogoutOutlined />,
 			label: 'Logout',
 			show: true,

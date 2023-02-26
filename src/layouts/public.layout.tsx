@@ -13,11 +13,13 @@ export const PublicLayout: React.FC = () => {
 		const auth = getAuth();
 		const unsubscribe = onAuthStateChanged(auth, (user) => {
 			if (user?.uid) {
-				userService.setUser(user.uid)
+				userService.setUserId(user.uid)
+				userService.setUser(user);
 				navigate(PATHS.POLL);
 			} else {
 				// User is signed out
 				navigate(PATHS.LOGIN);
+				userService.clearUser();
 			}
 		});
 
